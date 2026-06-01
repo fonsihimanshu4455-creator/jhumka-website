@@ -8,16 +8,13 @@ export default function Header() {
   const navigate = useNavigate()
 
   const goToCategory = (slug) => {
-    navigate('/')
-    // Wait for home render then scroll to the category section.
+    // Navigate home with the category filter applied, then scroll to the grid.
+    navigate(slug ? `/?category=${slug}` : '/')
     setTimeout(() => {
-      const el = document.getElementById(`cat-${slug}`)
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      else
-        document
-          .getElementById('all-products')
-          ?.scrollIntoView({ behavior: 'smooth' })
-    }, 100)
+      document
+        .getElementById('shop')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 120)
   }
 
   return (
@@ -29,6 +26,9 @@ export default function Header() {
         </Link>
 
         <nav className="nav">
+          <button className="nav__link" onClick={() => goToCategory('')}>
+            All
+          </button>
           {CATEGORIES.map((c) => (
             <button
               key={c.slug}

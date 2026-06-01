@@ -1,24 +1,34 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import api from '../api/client.js'
 import Hero from '../components/Hero.jsx'
-import TrustStrip from '../components/TrustStrip.jsx'
-import ViralRail from '../components/ViralRail.jsx'
 import CategoryGrid from '../components/CategoryGrid.jsx'
 import ProductCard from '../components/ProductCard.jsx'
 import { CATEGORIES } from '../constants.js'
+
+// Fisher–Yates shuffle — mixes products so the grid feels fresh each load.
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
 
 export default function Home() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [params, setParams] = useSearchParams()
+
+  const activeCat = params.get('category') || 'all'
 
   useEffect(() => {
     let active = true
     api
       .get('/products')
-      .then(({ data }) => {
-        if (active) setProducts(data)
-      })
+      .then(({ data }) => active && setProducts(data))
       .catch(() => active && setError('Could not load products.'))
       .finally(() => active && setLoading(false))
     return () => {
@@ -26,33 +36,71 @@ export default function Home() {
     }
   }, [])
 
-  const viral = useMemo(() => products.filter((p) => p.isViral), [products])
+  // Shuffle once per product load; only reshuffles when the list changes.
+  const shuffled = useMemo(() => shuffle(products), [products])
 
-  const byCategory = useMemo(() => {
-    const map = {}
-    for (const c of CATEGORIES) map[c.slug] = []
-    for (const p of products) {
-      if (map[p.category]) map[p.category].push(p)
-    }
-    return map
+  const visible = useMemo(() => {
+    if (activeCat === 'all') return shuffled
+    return products.filter((p) => p.category === activeCat)
+  }, [activeCat, shuffled, products])
+
+  // Count per category, to hide empty filter chips.
+  const counts = useMemo(() => {
+    const c = {}
+    for (const p of products) c[p.category] = (c[p.category] || 0) + 1
+    return c
   }, [products])
+
+  const selectCat = (slug) => {
+    setParams(slug === 'all' ? {} : { category: slug })
+    document
+      .getElementById('shop')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const activeLabel =
+    activeCat === 'all'
+      ? 'All Products'
+      : CATEGORIES.find((c) => c.slug === activeCat)?.label || 'Products'
 
   return (
     <>
       <Hero />
-      <TrustStrip />
-      <ViralRail products={viral} />
-      <CategoryGrid />
 
-      <section className="section" id="all-products">
-        <div className="container section__head section__head--center">
-          <div>
-            <span className="section__eyebrow">The collection</span>
-            <h2 className="section__title">All Products</h2>
-          </div>
-        </div>
+      {/* Shop by category — clicking filters the grid below */}
+      <CategoryGrid active={activeCat} onSelect={selectCat} />
 
+      {/* Products */}
+      <section className="section section--tight" id="shop">
         <div className="container">
+          {/* Filter chips */}
+          <div className="chips">
+            <button
+              className={`chip ${activeCat === 'all' ? 'is-active' : ''}`}
+              onClick={() => selectCat('all')}
+            >
+              All
+            </button>
+            {CATEGORIES.filter((c) => counts[c.slug]).map((c) => (
+              <button
+                key={c.slug}
+                className={`chip ${activeCat === c.slug ? 'is-active' : ''}`}
+                onClick={() => selectCat(c.slug)}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="shop__head">
+            <h2 className="shop__title">{activeLabel}</h2>
+            {!loading && (
+              <span className="shop__count">
+                {visible.length} {visible.length === 1 ? 'item' : 'items'}
+              </span>
+            )}
+          </div>
+
           {loading && (
             <div className="grid">
               {Array.from({ length: 8 }).map((_, i) => (
@@ -66,27 +114,24 @@ export default function Home() {
               ))}
             </div>
           )}
+
           {error && <p className="muted notice">{error}</p>}
-          {!loading && !error && products.length === 0 && (
+
+          {!loading && !error && visible.length === 0 && (
             <p className="muted notice">
-              No products yet. Add some from the admin panel.
+              {products.length === 0
+                ? 'No products yet. Add some from the admin panel.'
+                : 'No items in this category yet.'}
             </p>
           )}
 
-          {/* Grouped by category so the header nav can scroll to anchors. */}
-          {!loading &&
-            CATEGORIES.map((c) =>
-              byCategory[c.slug]?.length ? (
-                <div key={c.slug} id={`cat-${c.slug}`} className="cat-section">
-                  <h3 className="cat-section__title">{c.label}</h3>
-                  <div className="grid">
-                    {byCategory[c.slug].map((p) => (
-                      <ProductCard key={p._id} product={p} />
-                    ))}
-                  </div>
-                </div>
-              ) : null,
-            )}
+          {!loading && visible.length > 0 && (
+            <div className="grid">
+              {visible.map((p) => (
+                <ProductCard key={p._id} product={p} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </>
