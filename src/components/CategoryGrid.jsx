@@ -1,3 +1,4 @@
+import SmartImage from './SmartImage.jsx'
 import { CATEGORIES } from '../constants.js'
 
 export default function CategoryGrid() {
@@ -12,10 +13,10 @@ export default function CategoryGrid() {
 
   return (
     <section className="section">
-      <div className="container section__head">
+      <div className="container section__head section__head--center">
         <div>
+          <span className="section__eyebrow">Browse</span>
           <h2 className="section__title">Shop by category</h2>
-          <p className="section__sub">Find your next favourite</p>
         </div>
       </div>
       <div className="container cat-grid">
@@ -25,7 +26,9 @@ export default function CategoryGrid() {
             className="cat-card"
             onClick={() => jump(c.slug)}
           >
-            <span className="cat-card__emoji">{c.emoji}</span>
+            <div className="cat-card__media">
+              <SmartImage src={c.image} alt={c.label} className="cat-card__img" />
+            </div>
             <span className="cat-card__label">{c.label}</span>
           </button>
         ))}

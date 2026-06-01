@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import api, { assetUrl } from '../api/client.js'
+import api from '../api/client.js'
 import { useCart } from '../context/CartContext.jsx'
+import SmartImage from '../components/SmartImage.jsx'
 import { formatINR, discountPct } from '../constants.js'
+import {
+  IconArrowLeft,
+  IconPlus,
+  IconMinus,
+  IconBag,
+  IconTruck,
+  IconShield,
+} from '../components/icons.jsx'
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -14,10 +23,13 @@ export default function ProductDetail() {
 
   useEffect(() => {
     let live = true
-    setLoading(true)
     api
       .get(`/products/${id}`)
-      .then(({ data }) => live && setProduct(data))
+      .then(({ data }) => {
+        if (!live) return
+        setProduct(data)
+        setActive(0)
+      })
       .catch(() => live && setProduct(null))
       .finally(() => live && setLoading(false))
     return () => {
@@ -25,11 +37,11 @@ export default function ProductDetail() {
     }
   }, [id])
 
-  if (loading) return <div className="container pad">Loading…</div>
+  if (loading) return <div className="container pad muted">Loading…</div>
   if (!product)
     return (
-      <div className="container pad">
-        <p>Product not found.</p>
+      <div className="container pad cart-empty">
+        <h2>Product not found</h2>
         <Link to="/" className="btn btn--primary">
           Back to shop
         </Link>
@@ -43,15 +55,17 @@ export default function ProductDetail() {
   return (
     <div className="container pdp">
       <Link to="/" className="pdp__back">
-        ← Back
+        <IconArrowLeft width="18" height="18" /> Back to shop
       </Link>
       <div className="pdp__grid">
         <div className="pdp__gallery">
-          <img
-            className="pdp__main"
-            src={assetUrl(images[active])}
-            alt={product.name}
-          />
+          <div className="pdp__main-wrap">
+            <SmartImage
+              src={images[active]}
+              alt={product.name}
+              className="pdp__main"
+            />
+          </div>
           {images.length > 1 && (
             <div className="pdp__thumbs">
               {images.map((img, i) => (
@@ -60,7 +74,7 @@ export default function ProductDetail() {
                   className={`pdp__thumb ${i === active ? 'is-active' : ''}`}
                   onClick={() => setActive(i)}
                 >
-                  <img src={assetUrl(img)} alt="" />
+                  <SmartImage src={img} alt="" />
                 </button>
               ))}
             </div>
@@ -68,41 +82,53 @@ export default function ProductDetail() {
         </div>
 
         <div className="pdp__info">
-          {product.isViral && <span className="card__viral">🔥 Viral</span>}
+          {product.isViral && <span className="pdp__eyebrow">Bestseller</span>}
           <h1 className="pdp__title">{product.name}</h1>
           <div className="pdp__price">
             <span className="card__now">{formatINR(product.price)}</span>
             {product.mrp > product.price && (
               <>
                 <span className="card__mrp">{formatINR(product.mrp)}</span>
-                <span className="pdp__save">{pct}% OFF</span>
+                <span className="pdp__save">{pct}% off</span>
               </>
             )}
           </div>
           <p className="pdp__desc">
-            {product.description || 'A trending pick from the Jhumka collection.'}
+            {product.description ||
+              'A timeless piece from the Jhumka collection, crafted to elevate every occasion.'}
           </p>
           <p className={`pdp__stock ${soldOut ? 'out' : ''}`}>
-            {soldOut ? 'Out of stock' : `In stock (${product.stock} left)`}
+            {soldOut ? 'Out of stock' : `In stock · ${product.stock} available`}
           </p>
 
           {!soldOut && (
             <div className="pdp__buy">
-              <div className="qty">
-                <button onClick={() => setQty((q) => Math.max(1, q - 1))}>
-                  −
+              <div className="qty qty--lg">
+                <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease">
+                  <IconMinus />
                 </button>
                 <span>{qty}</span>
-                <button onClick={() => setQty((q) => q + 1)}>+</button>
+                <button onClick={() => setQty((q) => q + 1)} aria-label="Increase">
+                  <IconPlus />
+                </button>
               </div>
               <button
-                className="btn btn--primary"
+                className="btn btn--primary btn--block"
                 onClick={() => addToCart(product, qty)}
               >
-                Add to cart
+                <IconBag width="18" height="18" /> Add to bag
               </button>
             </div>
           )}
+
+          <div className="pdp__perks">
+            <div className="pdp__perk">
+              <IconTruck /> <span>Free shipping over ₹999</span>
+            </div>
+            <div className="pdp__perk">
+              <IconShield /> <span>6-month warranty included</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

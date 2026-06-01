@@ -1,8 +1,8 @@
 const MESSAGES = [
-  '🎀 FREE shipping on orders above ₹499',
-  '✨ New Viral Collection just dropped',
-  '💝 Flat 10% OFF — use code JHUMKA10',
-  '🚚 COD available across India',
+  'Complimentary shipping on orders above ₹999',
+  'New Festive Edit — now live',
+  'Flat 10% off your first order · code WELCOME10',
+  'Cash on delivery available across India',
 ]
 
 export default function AnnouncementBar() {
@@ -14,6 +14,7 @@ export default function AnnouncementBar() {
         {loop.map((m, i) => (
           <span className="announce__item" key={i}>
             {m}
+            <span className="announce__dot" aria-hidden="true" />
           </span>
         ))}
       </div>

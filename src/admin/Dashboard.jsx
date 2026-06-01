@@ -23,10 +23,10 @@ export default function Dashboard() {
   const pending = orders.filter((o) => o.status === 'Pending').length
 
   const cards = [
-    { label: 'Total Products', value: products.length, icon: '🛍️' },
-    { label: 'Total Orders', value: orders.length, icon: '📦' },
-    { label: 'Pending Orders', value: pending, icon: '⏳' },
-    { label: 'Revenue', value: formatINR(revenue), icon: '💰' },
+    { label: 'Total Products', value: products.length },
+    { label: 'Total Orders', value: orders.length },
+    { label: 'Pending Orders', value: pending },
+    { label: 'Revenue', value: formatINR(revenue) },
   ]
 
   return (
@@ -39,11 +39,8 @@ export default function Dashboard() {
           <div className="admin-cards">
             {cards.map((c) => (
               <div className="admin-card" key={c.label}>
-                <span className="admin-card__icon">{c.icon}</span>
-                <div>
-                  <div className="admin-card__value">{c.value}</div>
-                  <div className="admin-card__label">{c.label}</div>
-                </div>
+                <div className="admin-card__label">{c.label}</div>
+                <div className="admin-card__value">{c.value}</div>
               </div>
             ))}
           </div>

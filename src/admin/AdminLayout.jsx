@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
+import { IconMenu } from '../components/icons.jsx'
 
 export default function AdminLayout() {
   const { logout } = useAuth()
@@ -13,9 +14,9 @@ export default function AdminLayout() {
   }
 
   const links = [
-    { to: '/admin', label: 'Dashboard', icon: '📊', end: true },
-    { to: '/admin/products', label: 'Products', icon: '🛍️' },
-    { to: '/admin/orders', label: 'Orders', icon: '📦' },
+    { to: '/admin', label: 'Dashboard', end: true },
+    { to: '/admin/products', label: 'Products' },
+    { to: '/admin/orders', label: 'Orders' },
   ]
 
   return (
@@ -33,12 +34,12 @@ export default function AdminLayout() {
               }
               onClick={() => setOpen(false)}
             >
-              <span>{l.icon}</span> {l.label}
+              {l.label}
             </NavLink>
           ))}
         </nav>
         <button className="admin-logout" onClick={handleLogout}>
-          ⎋ Logout
+          Logout
         </button>
       </aside>
 
@@ -49,7 +50,7 @@ export default function AdminLayout() {
             onClick={() => setOpen((o) => !o)}
             aria-label="Toggle menu"
           >
-            ☰
+            <IconMenu />
           </button>
           <span>Admin Panel</span>
           <a href="/" className="admin-viewsite">
