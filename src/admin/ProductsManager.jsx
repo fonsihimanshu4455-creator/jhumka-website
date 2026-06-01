@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import api, { assetUrl } from '../api/client.js'
 import { CATEGORIES, formatINR } from '../constants.js'
+import { IconPlus, IconTrash } from '../components/icons.jsx'
+import SmartImage from '../components/SmartImage.jsx'
 
 const EMPTY = {
   name: '',
@@ -21,6 +23,9 @@ export default function ProductsManager() {
   const [editingId, setEditingId] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+  const [urlInput, setUrlInput] = useState('')
+  const [dragOver, setDragOver] = useState(false)
+  const fileRef = useRef(null)
 
   const load = () => {
     setLoading(true)
@@ -58,24 +63,62 @@ export default function ProductsManager() {
 
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
-  const uploadImage = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const addImage = (url) =>
+    setForm((f) => ({ ...f, images: [...f.images, url] }))
+
+  // Upload one or more files (from the file picker or a drop).
+  const uploadFiles = async (files) => {
+    const list = Array.from(files || []).filter((f) =>
+      f.type.startsWith('image/'),
+    )
+    if (!list.length) return
     setUploading(true)
     setError('')
     try {
-      const fd = new FormData()
-      fd.append('image', file)
-      const { data } = await api.post('/upload', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      setForm((f) => ({ ...f, images: [...f.images, data.url] }))
+      for (const file of list) {
+        const fd = new FormData()
+        fd.append('image', file)
+        const { data } = await api.post('/upload', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+        addImage(data.url)
+      }
     } catch {
-      setError('Image upload failed')
+      setError('Image upload failed (is the backend running?)')
     } finally {
       setUploading(false)
-      e.target.value = ''
     }
+  }
+
+  const onFileInput = (e) => {
+    uploadFiles(e.target.files)
+    e.target.value = ''
+  }
+
+  // Add an image by pasting a direct URL.
+  const addUrl = () => {
+    const url = urlInput.trim()
+    if (!url) return
+    if (!/^https?:\/\//i.test(url)) {
+      setError('Please paste a valid image URL (starting with http).')
+      return
+    }
+    addImage(url)
+    setUrlInput('')
+    setError('')
+  }
+
+  // Drag-and-drop: accept dropped files, or an image URL dragged from another tab.
+  const onDrop = (e) => {
+    e.preventDefault()
+    setDragOver(false)
+    if (e.dataTransfer.files?.length) {
+      uploadFiles(e.dataTransfer.files)
+      return
+    }
+    const url = e.dataTransfer.getData('text/uri-list') ||
+      e.dataTransfer.getData('text/plain')
+    if (url && /^https?:\/\//i.test(url.trim())) addImage(url.trim())
   }
 
   const removeImage = (idx) =>
@@ -144,18 +187,20 @@ export default function ProductsManager() {
               products.map((p) => (
                 <tr key={p._id}>
                   <td>
-                    <img
-                      className="admin-thumb"
-                      src={assetUrl(p.images?.[0])}
-                      alt=""
-                    />
+                    <SmartImage className="admin-thumb" src={p.images?.[0]} alt="" />
                   </td>
                   <td>{p.name}</td>
-                  <td>{p.category}</td>
+                  <td className="cap">{p.category}</td>
                   <td>{formatINR(p.price)}</td>
                   <td>{formatINR(p.mrp)}</td>
                   <td>{p.stock}</td>
-                  <td>{p.isViral ? '🔥' : '—'}</td>
+                  <td>
+                    {p.isViral ? (
+                      <span className="pill pill--delivered">Viral</span>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td className="admin-actions">
                     <button onClick={() => openEdit(p)}>Edit</button>
                     <button className="danger" onClick={() => remove(p._id)}>
@@ -214,7 +259,7 @@ export default function ProductsManager() {
                   checked={form.isViral}
                   onChange={(e) => setField('isViral', e.target.checked)}
                 />
-                Mark as Viral 🔥
+                Mark as Bestseller
               </label>
             </div>
 
@@ -257,20 +302,72 @@ export default function ProductsManager() {
               />
             </label>
 
-            <label>
-              Images
-              <input type="file" accept="image/*" onChange={uploadImage} />
-            </label>
-            {uploading && <p className="muted">Uploading…</p>}
-            <div className="admin-img-list">
-              {form.images.map((img, i) => (
-                <div className="admin-img" key={i}>
-                  <img src={assetUrl(img)} alt="" />
-                  <button type="button" onClick={() => removeImage(i)}>
-                    ✕
-                  </button>
-                </div>
-              ))}
+            <div className="admin-field">
+              <span className="admin-field__label">Images</span>
+
+              {/* Drag-and-drop / click-to-upload zone */}
+              <div
+                className={`admin-drop ${dragOver ? 'is-over' : ''}`}
+                onClick={() => fileRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  setDragOver(true)
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={onDrop}
+              >
+                <IconPlus />
+                <span>
+                  <strong>Drag &amp; drop</strong> images here, or{' '}
+                  <u>click to upload</u>
+                </span>
+                <small>You can also drag an image from another browser tab.</small>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  onChange={onFileInput}
+                />
+              </div>
+
+              {/* Paste a direct image URL */}
+              <div className="admin-url-row">
+                <input
+                  type="url"
+                  placeholder="…or paste an image URL (https://…)"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addUrl()
+                    }
+                  }}
+                />
+                <button type="button" className="admin-btn admin-btn--ghost" onClick={addUrl}>
+                  Add URL
+                </button>
+              </div>
+
+              {uploading && <p className="muted">Uploading…</p>}
+
+              <div className="admin-img-list">
+                {form.images.map((img, i) => (
+                  <div className="admin-img" key={i}>
+                    <img src={assetUrl(img)} alt="" />
+                    {i === 0 && <span className="admin-img__main">Cover</span>}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(i)}
+                      aria-label="Remove image"
+                    >
+                      <IconTrash width="14" height="14" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="admin-modal__actions">

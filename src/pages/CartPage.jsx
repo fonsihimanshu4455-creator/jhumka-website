@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
-import { assetUrl } from '../api/client.js'
+import SmartImage from '../components/SmartImage.jsx'
 import { formatINR } from '../constants.js'
+import { IconPlus, IconMinus, IconTrash } from '../components/icons.jsx'
 
 export default function CartPage() {
   const { items, updateQty, removeFromCart, total, setIsOpen } = useCart()
@@ -9,8 +10,8 @@ export default function CartPage() {
   if (!items.length)
     return (
       <div className="container pad cart-empty">
-        <h2>Your bag is empty 🌸</h2>
-        <p>Looks like you haven't added any sparkle yet.</p>
+        <h2>Your bag is empty</h2>
+        <p>Discover pieces you’ll love from our latest edit.</p>
         <Link to="/" className="btn btn--primary">
           Start shopping
         </Link>
@@ -24,15 +25,19 @@ export default function CartPage() {
         <div className="cart-page__list">
           {items.map((i) => (
             <div className="cart-row" key={i.id}>
-              <img src={assetUrl(i.image)} alt={i.name} />
+              <SmartImage src={i.image} alt={i.name} />
               <div className="cart-row__info">
                 <span className="cart-row__name">{i.name}</span>
                 <span className="cart-row__price">{formatINR(i.price)}</span>
               </div>
               <div className="qty">
-                <button onClick={() => updateQty(i.id, i.qty - 1)}>−</button>
+                <button onClick={() => updateQty(i.id, i.qty - 1)} aria-label="Decrease">
+                  <IconMinus />
+                </button>
                 <span>{i.qty}</span>
-                <button onClick={() => updateQty(i.id, i.qty + 1)}>+</button>
+                <button onClick={() => updateQty(i.id, i.qty + 1)} aria-label="Increase">
+                  <IconPlus />
+                </button>
               </div>
               <strong className="cart-row__sub">
                 {formatINR(i.price * i.qty)}
@@ -40,28 +45,29 @@ export default function CartPage() {
               <button
                 className="drawer__remove"
                 onClick={() => removeFromCart(i.id)}
+                aria-label="Remove"
               >
-                🗑️
+                <IconTrash />
               </button>
             </div>
           ))}
         </div>
 
         <aside className="cart-page__summary">
-          <h3>Summary</h3>
+          <h3>Order Summary</h3>
           <div className="cart-page__line">
             <span>Subtotal</span>
             <strong>{formatINR(total)}</strong>
           </div>
           <div className="cart-page__line muted">
             <span>Shipping</span>
-            <span>Calculated on WhatsApp</span>
+            <span>Confirmed on WhatsApp</span>
           </div>
           <button
-            className="btn btn--whatsapp"
+            className="btn btn--primary btn--block"
             onClick={() => setIsOpen(true)}
           >
-            Checkout
+            Proceed to checkout
           </button>
         </aside>
       </div>

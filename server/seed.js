@@ -4,22 +4,23 @@ import { connectDB } from './config/db.js'
 import Product from './models/Product.js'
 import Admin from './models/Admin.js'
 
-// Placeholder images — swap these out for real product photos later.
-// Two images per product so the card hover-swap has something to show.
-const img = (label, bg) =>
-  'https://placehold.co/600x600/' + bg + '/6b2942?text=' + encodeURIComponent(label)
+// Real jewellery photos (Unsplash). Swap these any time from the admin panel
+// via URL paste, drag-and-drop, or file upload. Two images per product so the
+// product card's hover-swap has a second angle to show.
+const u = (id) =>
+  `https://images.unsplash.com/photo-${id}?w=700&q=80&auto=format&fit=crop`
 
 const PRODUCTS = [
   {
-    name: 'Peacock Meenakari Jhumka',
+    name: 'Meenakari Pearl Drop Jhumka',
     category: 'earrings',
     price: 449,
     mrp: 999,
     stock: 25,
     isViral: true,
     description:
-      'Hand-painted meenakari jhumkas with delicate pearl drops. The viral festive favourite.',
-    images: [img('Jhumka+1', 'ffd6e6'), img('Jhumka+2', 'f9bcd3')],
+      'Hand-painted meenakari jhumkas finished with delicate freshwater-look pearl drops. A festive favourite.',
+    images: [u('1635767798638-3e25273a8236'), u('1611652022419-a9419f74343d')],
   },
   {
     name: 'Rose Gold Heart Pendant',
@@ -28,8 +29,9 @@ const PRODUCTS = [
     mrp: 1299,
     stock: 18,
     isViral: true,
-    description: 'Dainty rose-gold heart pendant on a fine chain. Everyday elegance.',
-    images: [img('Pendant+1', 'ffe9f1'), img('Pendant+2', 'ffd6e6')],
+    description:
+      'A dainty rose-gold heart pendant on a fine chain — understated everyday elegance.',
+    images: [u('1599643478518-a784e5dc4c8f'), u('1611591437281-460bfbe1220a')],
   },
   {
     name: 'Minimalist Stackable Ring Set',
@@ -38,8 +40,8 @@ const PRODUCTS = [
     mrp: 799,
     stock: 40,
     isViral: false,
-    description: 'Set of 3 stackable rings in mixed finishes. Mix, match, sparkle.',
-    images: [img('Rings+1', 'fff5f8'), img('Rings+2', 'ffe9f1')],
+    description: 'A set of three stackable rings in mixed finishes. Mix, match and layer.',
+    images: [u('1605100804763-247f67b3557e'), u('1603561591411-07134e71a2a9')],
   },
   {
     name: 'Charm Beaded Bracelet',
@@ -48,8 +50,8 @@ const PRODUCTS = [
     mrp: 699,
     stock: 32,
     isViral: true,
-    description: 'Adjustable beaded bracelet with cute enamel charms.',
-    images: [img('Bracelet+1', 'ffd6e6'), img('Bracelet+2', 'f9bcd3')],
+    description: 'An adjustable beaded bracelet with hand-set enamel charms.',
+    images: [u('1611652022419-a9419f74343d'), u('1573408301185-9146fe634ad0')],
   },
   {
     name: 'Butterfly Silver Anklet',
@@ -58,8 +60,8 @@ const PRODUCTS = [
     mrp: 899,
     stock: 21,
     isViral: false,
-    description: 'Tinkling silver-tone anklet with tiny butterfly charms.',
-    images: [img('Anklet+1', 'fff5f8'), img('Anklet+2', 'ffe9f1')],
+    description: 'A tinkling silver-tone anklet with tiny butterfly charms.',
+    images: [u('1620656798932-902cbb6e5e0f'), u('1602173574767-37ac01994b2a')],
   },
   {
     name: 'Bridal Gift Hamper Box',
@@ -68,18 +70,19 @@ const PRODUCTS = [
     mrp: 2499,
     stock: 12,
     isViral: true,
-    description: 'Curated gift box: earrings, bracelet & a pendant in a keepsake box.',
-    images: [img('Gift+1', 'ffd6e6'), img('Gift+2', 'f9bcd3')],
+    description:
+      'A curated keepsake box with earrings, a bracelet and a pendant — ready to gift.',
+    images: [u('1513885535751-8b9238bd345a'), u('1549465220-1a8b9238cd48')],
   },
   {
-    name: 'Pearl Drop Studs',
+    name: 'Classic Pearl Stud Earrings',
     category: 'earrings',
     price: 249,
     mrp: 599,
     stock: 50,
     isViral: false,
-    description: 'Classic freshwater-look pearl drop studs for any occasion.',
-    images: [img('Studs+1', 'ffe9f1'), img('Studs+2', 'ffd6e6')],
+    description: 'Timeless freshwater-look pearl studs for any occasion.',
+    images: [u('1535632066927-ab7c9ab60908'), u('1535556116002-6281ff3e9f36')],
   },
   {
     name: 'Layered Coin Necklace',
@@ -88,8 +91,8 @@ const PRODUCTS = [
     mrp: 1199,
     stock: 16,
     isViral: false,
-    description: 'On-trend double-layered necklace with engraved coin charms.',
-    images: [img('Necklace+1', 'fff5f8'), img('Necklace+2', 'ffe9f1')],
+    description: 'An on-trend double-layered necklace with engraved coin charms.',
+    images: [u('1611591437281-460bfbe1220a'), u('1599643478518-a784e5dc4c8f')],
   },
   {
     name: 'Zircon Solitaire Ring',
@@ -98,18 +101,18 @@ const PRODUCTS = [
     mrp: 1099,
     stock: 28,
     isViral: true,
-    description: 'Sparkling AD zircon solitaire with a rhodium finish.',
-    images: [img('Ring+1', 'ffd6e6'), img('Ring+2', 'f9bcd3')],
+    description: 'A sparkling AD zircon solitaire with a bright rhodium finish.',
+    images: [u('1603561591411-07134e71a2a9'), u('1605100804763-247f67b3557e')],
   },
   {
-    name: 'Evil Eye Bracelet',
+    name: 'Evil Eye Chain Bracelet',
     category: 'bracelets',
     price: 279,
     mrp: 649,
     stock: 45,
     isViral: false,
-    description: 'Protective evil-eye charm bracelet with a dainty chain.',
-    images: [img('EvilEye+1', 'fff5f8'), img('EvilEye+2', 'ffe9f1')],
+    description: 'A protective evil-eye charm on a dainty chain bracelet.',
+    images: [u('1573408301185-9146fe634ad0'), u('1611652022419-a9419f74343d')],
   },
   {
     name: 'Oxidised Ghungroo Anklet',
@@ -118,8 +121,8 @@ const PRODUCTS = [
     mrp: 999,
     stock: 19,
     isViral: false,
-    description: 'Boho oxidised silver anklet with traditional ghungroo bells.',
-    images: [img('Ghungroo+1', 'ffd6e6'), img('Ghungroo+2', 'f9bcd3')],
+    description: 'A boho oxidised silver anklet with traditional ghungroo bells.',
+    images: [u('1602173574767-37ac01994b2a'), u('1620656798932-902cbb6e5e0f')],
   },
   {
     name: 'Birthday Surprise Combo',
@@ -128,8 +131,8 @@ const PRODUCTS = [
     mrp: 1799,
     stock: 14,
     isViral: false,
-    description: 'A cheerful combo of studs, ring & bracelet, ready to gift.',
-    images: [img('Combo+1', 'ffe9f1'), img('Combo+2', 'ffd6e6')],
+    description: 'A cheerful combo of studs, a ring and a bracelet — ready to gift.',
+    images: [u('1549465220-1a8b9238cd48'), u('1513885535751-8b9238bd345a')],
   },
 ]
 

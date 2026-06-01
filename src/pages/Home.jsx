@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import api from '../api/client.js'
 import Hero from '../components/Hero.jsx'
+import TrustStrip from '../components/TrustStrip.jsx'
 import ViralRail from '../components/ViralRail.jsx'
 import CategoryGrid from '../components/CategoryGrid.jsx'
 import ProductCard from '../components/ProductCard.jsx'
@@ -39,39 +40,53 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <TrustStrip />
       <ViralRail products={viral} />
       <CategoryGrid />
 
       <section className="section" id="all-products">
-        <div className="container section__head">
+        <div className="container section__head section__head--center">
           <div>
+            <span className="section__eyebrow">The collection</span>
             <h2 className="section__title">All Products</h2>
-            <p className="section__sub">Everything in one sparkly place</p>
           </div>
         </div>
 
         <div className="container">
-          {loading && <p className="muted">Loading products…</p>}
-          {error && <p className="muted">{error}</p>}
+          {loading && (
+            <div className="grid">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div className="card card--skeleton" key={i}>
+                  <div className="card__media skeleton" />
+                  <div className="card__body">
+                    <div className="skeleton skeleton--line" />
+                    <div className="skeleton skeleton--line short" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {error && <p className="muted notice">{error}</p>}
           {!loading && !error && products.length === 0 && (
-            <p className="muted">No products yet. Add some from the admin panel.</p>
+            <p className="muted notice">
+              No products yet. Add some from the admin panel.
+            </p>
           )}
 
           {/* Grouped by category so the header nav can scroll to anchors. */}
-          {CATEGORIES.map((c) =>
-            byCategory[c.slug]?.length ? (
-              <div key={c.slug} id={`cat-${c.slug}`} className="cat-section">
-                <h3 className="cat-section__title">
-                  {c.emoji} {c.label}
-                </h3>
-                <div className="grid">
-                  {byCategory[c.slug].map((p) => (
-                    <ProductCard key={p._id} product={p} />
-                  ))}
+          {!loading &&
+            CATEGORIES.map((c) =>
+              byCategory[c.slug]?.length ? (
+                <div key={c.slug} id={`cat-${c.slug}`} className="cat-section">
+                  <h3 className="cat-section__title">{c.label}</h3>
+                  <div className="grid">
+                    {byCategory[c.slug].map((p) => (
+                      <ProductCard key={p._id} product={p} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : null,
-          )}
+              ) : null,
+            )}
         </div>
       </section>
     </>

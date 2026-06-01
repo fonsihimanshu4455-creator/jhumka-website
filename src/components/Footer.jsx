@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { CATEGORIES } from '../constants.js'
+import {
+  IconInstagram,
+  IconFacebook,
+  IconPinterest,
+  IconArrowRight,
+} from './icons.jsx'
 
 export default function Footer() {
   const [email, setEmail] = useState('')
@@ -14,17 +20,40 @@ export default function Footer() {
 
   return (
     <footer className="footer">
+      <div className="container footer__news-band">
+        <div>
+          <h3>Join the inner circle</h3>
+          <p>Early access to new drops, private sales &amp; styling notes.</p>
+        </div>
+        {done ? (
+          <p className="footer__thanks">Thank you — check your inbox ✦</p>
+        ) : (
+          <form onSubmit={subscribe} className="footer__form">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <button type="submit" aria-label="Subscribe">
+              <IconArrowRight />
+            </button>
+          </form>
+        )}
+      </div>
+
       <div className="container footer__grid">
         <div className="footer__brand">
           <span className="logo__mark">Jhumka</span>
           <p>
-            Handpicked trending jewellery &amp; thoughtful gifts, delivered
-            across India. Sparkle that fits every budget.
+            Handcrafted jewellery &amp; thoughtful gifts, delivered across India.
+            Elegance for every occasion.
           </p>
           <div className="footer__social">
-            <a href="#" aria-label="Instagram">📷</a>
-            <a href="#" aria-label="Facebook">📘</a>
-            <a href="#" aria-label="Pinterest">📌</a>
+            <a href="#" aria-label="Instagram"><IconInstagram /></a>
+            <a href="#" aria-label="Facebook"><IconFacebook /></a>
+            <a href="#" aria-label="Pinterest"><IconPinterest /></a>
           </div>
         </div>
 
@@ -47,28 +76,20 @@ export default function Footer() {
           </ul>
         </div>
 
-        <div className="footer__news">
-          <h4>Join the sparkle club</h4>
-          <p>Subscribe for early access to drops &amp; secret discounts.</p>
-          {done ? (
-            <p className="footer__thanks">🎉 You're in! Check your inbox.</p>
-          ) : (
-            <form onSubmit={subscribe} className="footer__form">
-              <input
-                type="email"
-                placeholder="Your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <button type="submit">Subscribe</button>
-            </form>
-          )}
+        <div className="footer__col">
+          <h4>About</h4>
+          <ul>
+            <li>Our Story</li>
+            <li>Care Guide</li>
+            <li>Reviews</li>
+            <li>Stores</li>
+          </ul>
         </div>
       </div>
+
       <div className="footer__bottom container">
         <span>© {new Date().getFullYear()} Jhumka. All rights reserved.</span>
-        <span>Made with 💖 in India</span>
+        <span>Crafted with care in India</span>
       </div>
     </footer>
   )

@@ -1,6 +1,7 @@
 import { useCart } from '../context/CartContext.jsx'
-import { assetUrl } from '../api/client.js'
+import SmartImage from './SmartImage.jsx'
 import { formatINR, WHATSAPP_NUMBER } from '../constants.js'
+import { IconClose, IconPlus, IconMinus, IconTrash, IconWhatsApp } from './icons.jsx'
 import api from '../api/client.js'
 
 export default function CartDrawer() {
@@ -39,7 +40,7 @@ export default function CartDrawer() {
       .map((i) => `• ${i.name} × ${i.qty} — ${formatINR(i.price * i.qty)}`)
       .join('%0A')
     const text =
-      `Hi Jhumka! 🛍️ I'd like to order:%0A%0A${lines}%0A%0A*Total: ${formatINR(
+      `Hi Jhumka! I'd like to order:%0A%0A${lines}%0A%0A*Total: ${formatINR(
         total,
       )}*`
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank')
@@ -56,25 +57,29 @@ export default function CartDrawer() {
       <aside className={`drawer ${isOpen ? 'is-open' : ''}`} aria-hidden={!isOpen}>
         <div className="drawer__head">
           <h3>Your Bag ({count})</h3>
-          <button className="drawer__close" onClick={() => setIsOpen(false)}>
-            ✕
+          <button className="drawer__close" onClick={() => setIsOpen(false)} aria-label="Close">
+            <IconClose />
           </button>
         </div>
 
         <div className="drawer__items">
           {items.length === 0 && (
-            <p className="drawer__empty">Your bag is empty 🌸</p>
+            <p className="drawer__empty">Your bag is empty.</p>
           )}
           {items.map((i) => (
             <div className="drawer__item" key={i.id}>
-              <img src={assetUrl(i.image)} alt={i.name} />
+              <SmartImage src={i.image} alt={i.name} />
               <div className="drawer__item-info">
                 <span className="drawer__item-name">{i.name}</span>
                 <span className="drawer__item-price">{formatINR(i.price)}</span>
                 <div className="qty">
-                  <button onClick={() => updateQty(i.id, i.qty - 1)}>−</button>
+                  <button onClick={() => updateQty(i.id, i.qty - 1)} aria-label="Decrease">
+                    <IconMinus />
+                  </button>
                   <span>{i.qty}</span>
-                  <button onClick={() => updateQty(i.id, i.qty + 1)}>+</button>
+                  <button onClick={() => updateQty(i.id, i.qty + 1)} aria-label="Increase">
+                    <IconPlus />
+                  </button>
                 </div>
               </div>
               <button
@@ -82,7 +87,7 @@ export default function CartDrawer() {
                 onClick={() => removeFromCart(i.id)}
                 aria-label="Remove"
               >
-                🗑️
+                <IconTrash />
               </button>
             </div>
           ))}
@@ -91,13 +96,13 @@ export default function CartDrawer() {
         {items.length > 0 && (
           <div className="drawer__foot">
             <div className="drawer__total">
-              <span>Total</span>
+              <span>Subtotal</span>
               <strong>{formatINR(total)}</strong>
             </div>
             <button className="btn btn--whatsapp" onClick={checkout}>
-              <span>🟢</span> Checkout on WhatsApp
+              <IconWhatsApp /> Checkout on WhatsApp
             </button>
-            <p className="drawer__note">You'll confirm details on WhatsApp.</p>
+            <p className="drawer__note">Shipping &amp; details confirmed on WhatsApp.</p>
           </div>
         )}
       </aside>
