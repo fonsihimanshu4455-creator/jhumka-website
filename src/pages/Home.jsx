@@ -5,6 +5,7 @@ import Hero from '../components/Hero.jsx'
 import CategoryGrid from '../components/CategoryGrid.jsx'
 import ProductCard from '../components/ProductCard.jsx'
 import { CATEGORIES } from '../constants.js'
+import { DEMO_PRODUCTS } from '../data/demoProducts.js'
 
 // Fisher–Yates shuffle — mixes products so the grid feels fresh each load.
 function shuffle(arr) {
@@ -19,7 +20,6 @@ function shuffle(arr) {
 export default function Home() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [params, setParams] = useSearchParams()
 
   const activeCat = params.get('category') || 'all'
@@ -28,8 +28,16 @@ export default function Home() {
     let active = true
     api
       .get('/products')
-      .then(({ data }) => active && setProducts(data))
-      .catch(() => active && setError('Could not load products.'))
+      .then(({ data }) => {
+        if (!active) return
+        // Use the backend's products; if none exist yet, show demo items so the
+        // store never looks empty before the catalogue is set up.
+        setProducts(data?.length ? data : DEMO_PRODUCTS)
+      })
+      .catch(() => {
+        // No backend reachable — fall back to bundled demo products.
+        if (active) setProducts(DEMO_PRODUCTS)
+      })
       .finally(() => active && setLoading(false))
     return () => {
       active = false
@@ -115,14 +123,8 @@ export default function Home() {
             </div>
           )}
 
-          {error && <p className="muted notice">{error}</p>}
-
-          {!loading && !error && visible.length === 0 && (
-            <p className="muted notice">
-              {products.length === 0
-                ? 'No products yet. Add some from the admin panel.'
-                : 'No items in this category yet.'}
-            </p>
+          {!loading && visible.length === 0 && (
+            <p className="muted notice">No items in this category yet.</p>
           )}
 
           {!loading && visible.length > 0 && (
