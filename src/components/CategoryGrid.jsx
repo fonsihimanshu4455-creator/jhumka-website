@@ -1,18 +1,9 @@
 import SmartImage from './SmartImage.jsx'
 import { CATEGORIES } from '../constants.js'
 
-export default function CategoryGrid() {
-  const jump = (slug) => {
-    const el = document.getElementById(`cat-${slug}`)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    else
-      document
-        .getElementById('all-products')
-        ?.scrollIntoView({ behavior: 'smooth' })
-  }
-
+export default function CategoryGrid({ active = 'all', onSelect }) {
   return (
-    <section className="section">
+    <section className="section section--tight">
       <div className="container section__head section__head--center">
         <div>
           <span className="section__eyebrow">Browse</span>
@@ -23,8 +14,8 @@ export default function CategoryGrid() {
         {CATEGORIES.map((c) => (
           <button
             key={c.slug}
-            className="cat-card"
-            onClick={() => jump(c.slug)}
+            className={`cat-card ${active === c.slug ? 'is-active' : ''}`}
+            onClick={() => onSelect?.(c.slug)}
           >
             <div className="cat-card__media">
               <SmartImage src={c.image} alt={c.label} className="cat-card__img" />
