@@ -4,6 +4,7 @@ import api from '../api/client.js'
 import { useCart } from '../context/CartContext.jsx'
 import SmartImage from '../components/SmartImage.jsx'
 import { formatINR, discountPct } from '../constants.js'
+import { DEMO_PRODUCTS } from '../data/demoProducts.js'
 import {
   IconArrowLeft,
   IconPlus,
@@ -23,14 +24,18 @@ export default function ProductDetail() {
 
   useEffect(() => {
     let live = true
+    const demo = () => DEMO_PRODUCTS.find((p) => p._id === id) || null
     api
       .get(`/products/${id}`)
       .then(({ data }) => {
         if (!live) return
-        setProduct(data)
+        setProduct(data || demo())
         setActive(0)
       })
-      .catch(() => live && setProduct(null))
+      .catch(() => {
+        // No backend — fall back to the bundled demo product, if any.
+        if (live) setProduct(demo())
+      })
       .finally(() => live && setLoading(false))
     return () => {
       live = false
