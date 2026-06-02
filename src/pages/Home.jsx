@@ -4,7 +4,7 @@ import api from '../api/client.js'
 import Hero from '../components/Hero.jsx'
 import CategoryGrid from '../components/CategoryGrid.jsx'
 import ProductCard from '../components/ProductCard.jsx'
-import { CATEGORIES } from '../constants.js'
+import { useStore } from '../context/StoreContext.jsx'
 import { DEMO_PRODUCTS } from '../data/demoProducts.js'
 
 // Fisher–Yates shuffle — mixes products so the grid feels fresh each load.
@@ -18,6 +18,7 @@ function shuffle(arr) {
 }
 
 export default function Home() {
+  const { settings, categories } = useStore()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [params, setParams] = useSearchParams()
@@ -69,11 +70,18 @@ export default function Home() {
   const activeLabel =
     activeCat === 'all'
       ? 'All Products'
-      : CATEGORIES.find((c) => c.slug === activeCat)?.label || 'Products'
+      : categories.find((c) => c.slug === activeCat)?.name || 'Products'
 
   return (
     <>
       <Hero />
+
+      {/* Promo offer strip (toggled from admin → Settings) */}
+      {settings.offerActive && settings.offerText && (
+        <div className="offer-strip">
+          <div className="container">{settings.offerText}</div>
+        </div>
+      )}
 
       {/* Shop by category — clicking filters the grid below */}
       <CategoryGrid active={activeCat} onSelect={selectCat} />
@@ -89,15 +97,17 @@ export default function Home() {
             >
               All
             </button>
-            {CATEGORIES.filter((c) => counts[c.slug]).map((c) => (
-              <button
-                key={c.slug}
-                className={`chip ${activeCat === c.slug ? 'is-active' : ''}`}
-                onClick={() => selectCat(c.slug)}
-              >
-                {c.label}
-              </button>
-            ))}
+            {categories
+              .filter((c) => counts[c.slug])
+              .map((c) => (
+                <button
+                  key={c.slug}
+                  className={`chip ${activeCat === c.slug ? 'is-active' : ''}`}
+                  onClick={() => selectCat(c.slug)}
+                >
+                  {c.name}
+                </button>
+              ))}
           </div>
 
           <div className="shop__head">

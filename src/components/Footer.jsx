@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CATEGORIES } from '../constants.js'
+import { useStore } from '../context/StoreContext.jsx'
 import {
   IconInstagram,
   IconFacebook,
@@ -8,6 +8,7 @@ import {
 } from './icons.jsx'
 
 export default function Footer() {
+  const { settings, categories } = useStore()
   const [email, setEmail] = useState('')
   const [done, setDone] = useState(false)
 
@@ -45,7 +46,7 @@ export default function Footer() {
 
       <div className="container footer__grid">
         <div className="footer__brand">
-          <span className="logo__mark">Jhumka</span>
+          <span className="logo__mark">{settings.brandName}</span>
           <p>
             Handcrafted jewellery &amp; thoughtful gifts, delivered across India.
             Elegance for every occasion.
@@ -60,8 +61,8 @@ export default function Footer() {
         <div className="footer__col">
           <h4>Shop</h4>
           <ul>
-            {CATEGORIES.map((c) => (
-              <li key={c.slug}>{c.label}</li>
+            {categories.map((c) => (
+              <li key={c.slug}>{c.name}</li>
             ))}
           </ul>
         </div>
@@ -88,7 +89,7 @@ export default function Footer() {
       </div>
 
       <div className="footer__bottom container">
-        <span>© {new Date().getFullYear()} Jhumka. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} {settings.brandName}. All rights reserved.</span>
         <span>Crafted with care in India</span>
       </div>
     </footer>

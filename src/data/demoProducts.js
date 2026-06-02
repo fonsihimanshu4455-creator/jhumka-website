@@ -7,6 +7,35 @@
 const u = (id) =>
   `https://images.unsplash.com/photo-${id}?w=700&q=80&auto=format&fit=crop`
 
+// Demo categories (used when no backend is connected).
+export const DEMO_CATEGORIES = [
+  { _id: 'c1', name: 'Earrings', slug: 'earrings', order: 1, image: u('1635767798638-3e25273a8236') },
+  { _id: 'c2', name: 'Necklaces', slug: 'necklaces', order: 2, image: u('1599643478518-a784e5dc4c8f') },
+  { _id: 'c3', name: 'Rings', slug: 'rings', order: 3, image: u('1605100804763-247f67b3557e') },
+  { _id: 'c4', name: 'Bracelets', slug: 'bracelets', order: 4, image: u('1611652022419-a9419f74343d') },
+  { _id: 'c5', name: 'Anklets', slug: 'anklets', order: 5, image: u('1620656798932-902cbb6e5e0f') },
+  { _id: 'c6', name: 'Gift Sets', slug: 'gift-sets', order: 6, image: u('1513885535751-8b9238bd345a') },
+]
+
+// Demo store settings (branding / hero / announcements / offer).
+export const DEMO_SETTINGS = {
+  brandName: 'Jhumka',
+  tagline: 'Fine Jewellery & Gifts',
+  logo: '',
+  whatsapp: '',
+  announcements: [
+    'Complimentary shipping on orders above ₹999',
+    'New Festive Edit — now live',
+    'Flat 10% off your first order · code WELCOME10',
+    'Cash on delivery available across India',
+  ],
+  heroTitle: 'Everyday elegance, honest prices',
+  heroSubtitle: 'Handcrafted · New Festive Edit',
+  heroImage: '',
+  offerText: 'Use code WELCOME10 for 10% off your first order',
+  offerActive: true,
+}
+
 export const DEMO_PRODUCTS = [
   {
     _id: 'demo-1',

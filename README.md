@@ -113,16 +113,40 @@ All admin write routes are protected by JWT middleware.
 | `PATCH` | `/api/orders/:id/status` | ✅ | Update order status |
 | `POST` | `/api/admin/login` | — | Returns a JWT |
 | `POST` | `/api/upload` | ✅ | Upload image, returns `{ url }` |
+| `GET` | `/api/categories` | — | List categories |
+| `POST` `PUT` `DELETE` | `/api/categories[/:id]` | ✅ | Manage categories |
+| `POST` | `/api/coupons/apply` | — | Validate a code `{ code, subtotal }` → `{ discount }` |
+| `GET` `POST` `PUT` `DELETE` | `/api/coupons[/:id]` | ✅ | Manage coupons |
+| `GET` | `/api/settings` | — | Store branding / hero / offer / announcements |
+| `PUT` | `/api/settings` | ✅ | Update store settings |
+
+---
+
+## 🛠️ Admin panel features
+
+Sign in at **`/admin/login`**. The sidebar gives access to:
+
+- **Dashboard** — product / order counts + revenue
+- **Products** — add / edit / delete, images via URL · drag-drop · upload, price/MRP/stock/category, mark Bestseller
+- **Categories** — add / edit / delete categories with photos (drive the header, category strip & filters)
+- **Orders** — customer details + status (Pending → Dispatched → Delivered)
+- **Coupons** — create % or flat codes with min-order, max-cap, expiry & active toggle (validated live at checkout)
+- **Settings** — brand name, tagline, **logo upload**, WhatsApp number, hero title/subtitle/image, promo offer strip, and scrolling announcements
+
+> The storefront reads categories & settings from the backend (with demo
+> fallbacks), so branding, offers and coupons all update without code changes.
 
 ---
 
 ## 🎨 Storefront features
 
-Announcement marquee · sticky header with category nav + cart badge · hero with
-stats · horizontal-scroll **Viral Collection** rail · category grid · grouped
-**All Products** · footer newsletter. Product cards have two-image hover swap,
-sale % badge, strikethrough MRP and add-to-cart. Slide-in cart drawer with
-quantity controls and **WhatsApp checkout**. Fully mobile responsive.
+Scrolling announcement bar · sticky header with category nav + cart badge ·
+compact image-led hero · optional promo offer strip · "Shop by category" strip ·
+category-filtered product grid (shuffled) with filter chips · footer newsletter.
+Product cards have two-image hover swap, sale % badge, strikethrough MRP and
+quick add-to-bag. Slide-in cart drawer with quantity controls, **coupon codes**
+and **WhatsApp checkout**. All branding, categories, offers and coupons are
+admin-controlled. Fully mobile responsive.
 
 ---
 

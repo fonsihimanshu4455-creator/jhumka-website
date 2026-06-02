@@ -1,14 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
-import { CATEGORIES } from '../constants.js'
+import { useStore } from '../context/StoreContext.jsx'
+import { assetUrl } from '../api/client.js'
 import { IconBag } from './icons.jsx'
 
 export default function Header() {
   const { count, setIsOpen } = useCart()
+  const { settings, categories } = useStore()
   const navigate = useNavigate()
 
   const goToCategory = (slug) => {
-    // Navigate home with the category filter applied, then scroll to the grid.
     navigate(slug ? `/?category=${slug}` : '/')
     setTimeout(() => {
       document
@@ -21,21 +22,31 @@ export default function Header() {
     <header className="header">
       <div className="header__inner container">
         <Link to="/" className="logo">
-          <span className="logo__mark">Jhumka</span>
-          <span className="logo__sub">Fine Jewellery &amp; Gifts</span>
+          {settings.logo ? (
+            <img
+              src={assetUrl(settings.logo)}
+              alt={settings.brandName}
+              className="logo__img"
+            />
+          ) : (
+            <>
+              <span className="logo__mark">{settings.brandName}</span>
+              <span className="logo__sub">{settings.tagline}</span>
+            </>
+          )}
         </Link>
 
         <nav className="nav">
           <button className="nav__link" onClick={() => goToCategory('')}>
             All
           </button>
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <button
               key={c.slug}
               className="nav__link"
               onClick={() => goToCategory(c.slug)}
             >
-              {c.label}
+              {c.name}
             </button>
           ))}
         </nav>

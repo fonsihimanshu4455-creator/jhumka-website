@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import api, { assetUrl } from '../api/client.js'
-import { CATEGORIES, formatINR } from '../constants.js'
+import { formatINR } from '../constants.js'
+import { useStore } from '../context/StoreContext.jsx'
 import { IconPlus, IconTrash } from '../components/icons.jsx'
 import SmartImage from '../components/SmartImage.jsx'
 
 const EMPTY = {
   name: '',
-  category: 'earrings',
+  category: '',
   price: '',
   mrp: '',
   stock: '',
@@ -16,6 +17,7 @@ const EMPTY = {
 }
 
 export default function ProductsManager() {
+  const { categories } = useStore()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -39,7 +41,7 @@ export default function ProductsManager() {
   useEffect(load, [])
 
   const openCreate = () => {
-    setForm(EMPTY)
+    setForm({ ...EMPTY, category: categories[0]?.slug || '' })
     setEditingId(null)
     setError('')
     setShowForm(true)
@@ -246,9 +248,9 @@ export default function ProductsManager() {
                   value={form.category}
                   onChange={(e) => setField('category', e.target.value)}
                 >
-                  {CATEGORIES.map((c) => (
+                  {categories.map((c) => (
                     <option key={c.slug} value={c.slug}>
-                      {c.label}
+                      {c.name}
                     </option>
                   ))}
                 </select>

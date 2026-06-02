@@ -1,8 +1,12 @@
+import { useState } from 'react'
 import { useCart } from '../context/CartContext.jsx'
+import { useStore } from '../context/StoreContext.jsx'
 import SmartImage from './SmartImage.jsx'
-import { formatINR, WHATSAPP_NUMBER } from '../constants.js'
+import { formatINR } from '../constants.js'
 import { IconClose, IconPlus, IconMinus, IconTrash, IconWhatsApp } from './icons.jsx'
 import api from '../api/client.js'
+
+const WA_FALLBACK = import.meta.env.VITE_WHATSAPP_NUMBER || '919999999999'
 
 export default function CartDrawer() {
   const {
@@ -11,15 +15,32 @@ export default function CartDrawer() {
     setIsOpen,
     updateQty,
     removeFromCart,
+    subtotal,
+    discount,
     total,
     count,
+    coupon,
+    couponError,
+    applyCoupon,
+    removeCoupon,
     clearCart,
   } = useCart()
+  const { settings } = useStore()
+  const [code, setCode] = useState('')
+  const [applying, setApplying] = useState(false)
+
+  const whatsapp = settings.whatsapp || WA_FALLBACK
+
+  const handleApply = async () => {
+    setApplying(true)
+    const ok = await applyCoupon(code)
+    if (ok) setCode('')
+    setApplying(false)
+  }
 
   const checkout = async () => {
     if (!items.length) return
 
-    // Best-effort: record the order in the backend before WhatsApp handoff.
     const payload = {
       items: items.map((i) => ({
         product: i.id,
@@ -29,6 +50,8 @@ export default function CartDrawer() {
       })),
       total,
       customer: { name: 'WhatsApp Customer' },
+      coupon: coupon?.code || '',
+      discount,
     }
     try {
       await api.post('/orders', payload)
@@ -39,11 +62,14 @@ export default function CartDrawer() {
     const lines = items
       .map((i) => `• ${i.name} × ${i.qty} — ${formatINR(i.price * i.qty)}`)
       .join('%0A')
-    const text =
-      `Hi Jhumka! I'd like to order:%0A%0A${lines}%0A%0A*Total: ${formatINR(
-        total,
-      )}*`
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank')
+    let text = `Hi ${settings.brandName || 'there'}! I'd like to order:%0A%0A${lines}%0A%0ASubtotal: ${formatINR(
+      subtotal,
+    )}`
+    if (discount > 0)
+      text += `%0ACoupon ${coupon.code}: -${formatINR(discount)}`
+    text += `%0A%0A*Total: ${formatINR(total)}*`
+
+    window.open(`https://wa.me/${whatsapp}?text=${text}`, '_blank')
     clearCart()
     setIsOpen(false)
   }
@@ -63,9 +89,7 @@ export default function CartDrawer() {
         </div>
 
         <div className="drawer__items">
-          {items.length === 0 && (
-            <p className="drawer__empty">Your bag is empty.</p>
-          )}
+          {items.length === 0 && <p className="drawer__empty">Your bag is empty.</p>}
           {items.map((i) => (
             <div className="drawer__item" key={i.id}>
               <SmartImage src={i.image} alt={i.name} />
@@ -95,10 +119,46 @@ export default function CartDrawer() {
 
         {items.length > 0 && (
           <div className="drawer__foot">
-            <div className="drawer__total">
-              <span>Subtotal</span>
-              <strong>{formatINR(total)}</strong>
+            {/* Coupon */}
+            {coupon ? (
+              <div className="coupon coupon--applied">
+                <span>
+                  Coupon <strong>{coupon.code}</strong> applied
+                </span>
+                <button onClick={removeCoupon}>Remove</button>
+              </div>
+            ) : (
+              <div className="coupon">
+                <input
+                  placeholder="Coupon code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => e.key === 'Enter' && handleApply()}
+                />
+                <button onClick={handleApply} disabled={applying}>
+                  {applying ? '…' : 'Apply'}
+                </button>
+              </div>
+            )}
+            {couponError && <p className="coupon__error">{couponError}</p>}
+
+            <div className="drawer__totals">
+              <div className="drawer__line">
+                <span>Subtotal</span>
+                <span>{formatINR(subtotal)}</span>
+              </div>
+              {discount > 0 && (
+                <div className="drawer__line drawer__line--save">
+                  <span>Discount</span>
+                  <span>−{formatINR(discount)}</span>
+                </div>
+              )}
+              <div className="drawer__total">
+                <span>Total</span>
+                <strong>{formatINR(total)}</strong>
+              </div>
             </div>
+
             <button className="btn btn--whatsapp" onClick={checkout}>
               <IconWhatsApp /> Checkout on WhatsApp
             </button>
