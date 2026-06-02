@@ -16,7 +16,10 @@ export default function AdminLayout() {
   const links = [
     { to: '/admin', label: 'Dashboard', end: true },
     { to: '/admin/products', label: 'Products' },
+    { to: '/admin/categories', label: 'Categories' },
     { to: '/admin/orders', label: 'Orders' },
+    { to: '/admin/coupons', label: 'Coupons' },
+    { to: '/admin/settings', label: 'Settings' },
   ]
 
   return (

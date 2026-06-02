@@ -8,6 +8,9 @@ import productRoutes from './routes/products.js'
 import orderRoutes from './routes/orders.js'
 import adminRoutes from './routes/admin.js'
 import uploadRoutes from './routes/upload.js'
+import categoryRoutes from './routes/categories.js'
+import couponRoutes from './routes/coupons.js'
+import settingsRoutes from './routes/settings.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -34,6 +37,9 @@ app.use('/api/products', productRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/categories', categoryRoutes)
+app.use('/api/coupons', couponRoutes)
+app.use('/api/settings', settingsRoutes)
 
 // ---- Error handler (e.g. multer errors) ----
 app.use((err, req, res, next) => {

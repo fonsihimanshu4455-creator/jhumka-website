@@ -9,6 +9,9 @@ import Login from './admin/Login.jsx'
 import Dashboard from './admin/Dashboard.jsx'
 import ProductsManager from './admin/ProductsManager.jsx'
 import OrdersManager from './admin/OrdersManager.jsx'
+import CategoriesManager from './admin/CategoriesManager.jsx'
+import CouponsManager from './admin/CouponsManager.jsx'
+import SettingsManager from './admin/SettingsManager.jsx'
 import ProtectedRoute from './admin/ProtectedRoute.jsx'
 
 export default function App() {
@@ -33,7 +36,10 @@ export default function App() {
       >
         <Route index element={<Dashboard />} />
         <Route path="products" element={<ProductsManager />} />
+        <Route path="categories" element={<CategoriesManager />} />
         <Route path="orders" element={<OrdersManager />} />
+        <Route path="coupons" element={<CouponsManager />} />
+        <Route path="settings" element={<SettingsManager />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

@@ -3,6 +3,9 @@ import mongoose from 'mongoose'
 import { connectDB } from './config/db.js'
 import Product from './models/Product.js'
 import Admin from './models/Admin.js'
+import Category from './models/Category.js'
+import Coupon from './models/Coupon.js'
+import Settings from './models/Settings.js'
 
 // Real jewellery photos (Unsplash). Swap these any time from the admin panel
 // via URL paste, drag-and-drop, or file upload. Two images per product so the
@@ -143,6 +146,47 @@ async function seed() {
   await Product.deleteMany({})
   await Product.insertMany(PRODUCTS)
   console.log(`✅ Seeded ${PRODUCTS.length} products`)
+
+  // --- Categories ---
+  const CATEGORIES = [
+    { name: 'Earrings', slug: 'earrings', order: 1, image: u('1635767798638-3e25273a8236') },
+    { name: 'Necklaces', slug: 'necklaces', order: 2, image: u('1599643478518-a784e5dc4c8f') },
+    { name: 'Rings', slug: 'rings', order: 3, image: u('1605100804763-247f67b3557e') },
+    { name: 'Bracelets', slug: 'bracelets', order: 4, image: u('1611652022419-a9419f74343d') },
+    { name: 'Anklets', slug: 'anklets', order: 5, image: u('1620656798932-902cbb6e5e0f') },
+    { name: 'Gift Sets', slug: 'gift-sets', order: 6, image: u('1513885535751-8b9238bd345a') },
+  ]
+  await Category.deleteMany({})
+  await Category.insertMany(CATEGORIES)
+  console.log(`✅ Seeded ${CATEGORIES.length} categories`)
+
+  // --- Coupons ---
+  await Coupon.deleteMany({})
+  await Coupon.insertMany([
+    { code: 'WELCOME10', type: 'percent', value: 10, minOrder: 0, maxDiscount: 200, active: true },
+    { code: 'FESTIVE15', type: 'percent', value: 15, minOrder: 999, maxDiscount: 500, active: true },
+    { code: 'FLAT100', type: 'flat', value: 100, minOrder: 499, active: true },
+  ])
+  console.log('✅ Seeded 3 coupons (WELCOME10, FESTIVE15, FLAT100)')
+
+  // --- Store settings ---
+  await Settings.deleteOne({ key: 'store' })
+  await Settings.create({
+    key: 'store',
+    brandName: 'Jhumka',
+    tagline: 'Fine Jewellery & Gifts',
+    whatsapp: process.env.SEED_WHATSAPP || '919999999999',
+    announcements: [
+      'Complimentary shipping on orders above ₹999',
+      'New Festive Edit — now live',
+      'Flat 10% off your first order · code WELCOME10',
+    ],
+    heroTitle: 'Everyday elegance, honest prices',
+    heroSubtitle: 'Handcrafted · New Festive Edit',
+    offerText: 'Use code WELCOME10 for 10% off your first order',
+    offerActive: true,
+  })
+  console.log('✅ Seeded store settings')
 
   // --- Default admin ---
   const email = (process.env.ADMIN_EMAIL || 'admin@jhumka.com').toLowerCase()

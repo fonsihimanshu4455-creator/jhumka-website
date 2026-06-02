@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import SmartImage from '../components/SmartImage.jsx'
@@ -5,7 +6,28 @@ import { formatINR } from '../constants.js'
 import { IconPlus, IconMinus, IconTrash } from '../components/icons.jsx'
 
 export default function CartPage() {
-  const { items, updateQty, removeFromCart, total, setIsOpen } = useCart()
+  const {
+    items,
+    updateQty,
+    removeFromCart,
+    subtotal,
+    discount,
+    total,
+    coupon,
+    couponError,
+    applyCoupon,
+    removeCoupon,
+    setIsOpen,
+  } = useCart()
+  const [code, setCode] = useState('')
+  const [applying, setApplying] = useState(false)
+
+  const handleApply = async () => {
+    setApplying(true)
+    const ok = await applyCoupon(code)
+    if (ok) setCode('')
+    setApplying(false)
+  }
 
   if (!items.length)
     return (
@@ -55,13 +77,47 @@ export default function CartPage() {
 
         <aside className="cart-page__summary">
           <h3>Order Summary</h3>
+
+          {/* Coupon */}
+          {coupon ? (
+            <div className="coupon coupon--applied">
+              <span>
+                Coupon <strong>{coupon.code}</strong> applied
+              </span>
+              <button onClick={removeCoupon}>Remove</button>
+            </div>
+          ) : (
+            <div className="coupon">
+              <input
+                placeholder="Coupon code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === 'Enter' && handleApply()}
+              />
+              <button onClick={handleApply} disabled={applying}>
+                {applying ? '…' : 'Apply'}
+              </button>
+            </div>
+          )}
+          {couponError && <p className="coupon__error">{couponError}</p>}
+
           <div className="cart-page__line">
             <span>Subtotal</span>
-            <strong>{formatINR(total)}</strong>
+            <strong>{formatINR(subtotal)}</strong>
           </div>
+          {discount > 0 && (
+            <div className="cart-page__line cart-page__line--save">
+              <span>Discount</span>
+              <strong>−{formatINR(discount)}</strong>
+            </div>
+          )}
           <div className="cart-page__line muted">
             <span>Shipping</span>
             <span>Confirmed on WhatsApp</span>
+          </div>
+          <div className="cart-page__line cart-page__grand">
+            <span>Total</span>
+            <strong>{formatINR(total)}</strong>
           </div>
           <button
             className="btn btn--primary btn--block"

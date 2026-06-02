@@ -1,13 +1,13 @@
-const MESSAGES = [
-  'Complimentary shipping on orders above ₹999',
-  'New Festive Edit — now live',
-  'Flat 10% off your first order · code WELCOME10',
-  'Cash on delivery available across India',
-]
+import { useStore } from '../context/StoreContext.jsx'
 
 export default function AnnouncementBar() {
+  const { settings } = useStore()
+  const messages = settings.announcements?.length
+    ? settings.announcements
+    : ['Welcome to our store']
+
   // Duplicate the list so the marquee loops seamlessly.
-  const loop = [...MESSAGES, ...MESSAGES]
+  const loop = [...messages, ...messages]
   return (
     <div className="announce">
       <div className="announce__track">
