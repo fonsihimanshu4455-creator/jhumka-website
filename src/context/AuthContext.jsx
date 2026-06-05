@@ -79,6 +79,7 @@ export function AuthProvider({ children }) {
   }
 
   // Send a one-time code to a phone number (E.164, e.g. +9198…).
+  // Requires an SMS provider configured in Supabase (paid).
   const sendOtp = async (phone) => {
     if (!supabase) throw authError('Store is not connected yet.')
     const { error } = await supabase.auth.signInWithOtp({ phone })
@@ -93,6 +94,30 @@ export function AuthProvider({ children }) {
       phone,
       token,
       type: 'sms',
+    })
+    if (error) throw authError(error.message)
+    setSession(data.session)
+    await loadProfile(data.session?.user?.id)
+    return data
+  }
+
+  // FREE alternative: send a one-time code to an email (no SMS provider needed).
+  const sendEmailOtp = async (email) => {
+    if (!supabase) throw authError('Store is not connected yet.')
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    })
+    if (error) throw authError(error.message)
+    return true
+  }
+
+  const verifyEmailOtp = async (email, token) => {
+    if (!supabase) throw authError('Store is not connected yet.')
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token: token.trim(),
+      type: 'email',
     })
     if (error) throw authError(error.message)
     setSession(data.session)
@@ -118,6 +143,8 @@ export function AuthProvider({ children }) {
     signup,
     sendOtp,
     verifyOtp,
+    sendEmailOtp,
+    verifyEmailOtp,
     logout,
     refreshProfile,
   }

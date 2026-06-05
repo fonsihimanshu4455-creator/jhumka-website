@@ -16,18 +16,9 @@ export default function Account() {
   )
 }
 
-// Turn a typed number into E.164 (defaults to India +91 for 10-digit numbers).
-function normalizePhone(raw) {
-  let p = (raw || '').replace(/[^\d+]/g, '')
-  if (!p) return ''
-  if (p.startsWith('+')) return p
-  if (p.length === 10) return '+91' + p
-  return '+' + p
-}
-
-// ---- Logged-out: login (email or OTP) + sign-up ---------------------------
+// ---- Logged-out: login (email OTP or password) + sign-up ------------------
 function AuthForms() {
-  const { login, signup, sendOtp, verifyOtp } = useAuth()
+  const { login, signup, sendEmailOtp, verifyEmailOtp } = useAuth()
   const [mode, setMode] = useState('otp') // 'otp' | 'login' | 'signup'
   const [form, setForm] = useState({
     fullName: '',
@@ -35,8 +26,8 @@ function AuthForms() {
     email: '',
     password: '',
   })
-  // OTP flow
-  const [otpPhone, setOtpPhone] = useState('')
+  // Email-OTP flow
+  const [otpEmail, setOtpEmail] = useState('')
   const [otpCode, setOtpCode] = useState('')
   const [otpSent, setOtpSent] = useState(false)
 
@@ -76,18 +67,17 @@ function AuthForms() {
     }
   }
 
-  // OTP: send code
+  // Email OTP: send code
   const sendCode = async (e) => {
     e.preventDefault()
     setError('')
     setBusy(true)
     try {
-      const phone = normalizePhone(otpPhone)
-      if (phone.length < 10) throw new Error('Enter a valid mobile number.')
-      await sendOtp(phone)
-      setOtpPhone(phone)
+      const email = otpEmail.trim()
+      if (!email) throw new Error('Enter your email.')
+      await sendEmailOtp(email)
       setOtpSent(true)
-      setInfo(`We sent a code to ${phone}.`)
+      setInfo(`We sent a 6-digit code to ${email}. Check your inbox (and spam).`)
     } catch (err) {
       setError(err?.response?.data?.message || err.message || 'Could not send code.')
     } finally {
@@ -95,13 +85,13 @@ function AuthForms() {
     }
   }
 
-  // OTP: verify code
+  // Email OTP: verify code
   const verifyCode = async (e) => {
     e.preventDefault()
     setError('')
     setBusy(true)
     try {
-      await verifyOtp(otpPhone, otpCode.trim())
+      await verifyEmailOtp(otpEmail.trim(), otpCode)
     } catch (err) {
       setError(err?.response?.data?.message || 'Wrong or expired code.')
     } finally {
@@ -117,9 +107,9 @@ function AuthForms() {
         </h1>
         <p className="admin-login__sub">
           {mode === 'otp'
-            ? 'Log in with your mobile number'
+            ? 'Log in with a one-time code sent to your email'
             : mode === 'login'
-              ? 'Log in with email'
+              ? 'Log in with email & password'
               : 'Sign up to checkout faster'}
         </p>
 
@@ -130,14 +120,14 @@ function AuthForms() {
             className={`auth-tab ${mode === 'otp' ? 'is-active' : ''}`}
             onClick={() => reset('otp')}
           >
-            Mobile OTP
+            Email OTP
           </button>
           <button
             type="button"
             className={`auth-tab ${mode !== 'otp' ? 'is-active' : ''}`}
             onClick={() => reset('login')}
           >
-            Email
+            Password
           </button>
         </div>
 
@@ -150,17 +140,18 @@ function AuthForms() {
             {!otpSent ? (
               <form onSubmit={sendCode}>
                 <label>
-                  Mobile number
+                  Email address
                   <input
-                    type="tel"
-                    value={otpPhone}
-                    onChange={(e) => setOtpPhone(e.target.value)}
-                    placeholder="98XXXXXXXX"
+                    type="email"
+                    value={otpEmail}
+                    onChange={(e) => setOtpEmail(e.target.value)}
+                    placeholder="you@example.com"
                     required
+                    autoComplete="email"
                   />
                 </label>
                 <button className="admin-btn" disabled={busy} type="submit">
-                  {busy ? 'Sending…' : 'Send OTP'}
+                  {busy ? 'Sending…' : 'Send code'}
                 </button>
               </form>
             ) : (
@@ -189,7 +180,7 @@ function AuthForms() {
                       setInfo('')
                     }}
                   >
-                    Change number / resend
+                    Change email / resend
                   </button>
                 </p>
               </form>
