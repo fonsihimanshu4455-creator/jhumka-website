@@ -992,3 +992,27 @@ button { font-family: inherit; cursor: pointer; }
 @media (max-width: 760px) {
   .account__grid { grid-template-columns: 1fr; }
 }
+
+/* ---- Checkout page ---- */
+.checkout__title { font-family: 'Fraunces', serif; font-weight: 500; margin-bottom: 18px; }
+.checkout__grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; align-items: start; }
+.checkout__panel { background: #fff; border: 1px solid var(--line, #ece6df); border-radius: 16px; padding: 24px; }
+.checkout__form { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+.checkout__form label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--muted); }
+.checkout__form input, .checkout__form textarea { padding: 11px 13px; border: 1px solid var(--line, #ddd); border-radius: 10px; font: inherit; }
+.checkout__or { text-align: center; color: var(--muted); margin: 12px 0; font-size: 0.85rem; }
+.checkout__secure { display: flex; align-items: center; gap: 6px; justify-content: center; color: var(--muted); font-size: 0.8rem; margin-top: 14px; }
+.checkout__summary { position: sticky; top: 90px; }
+.checkout__items { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 14px; }
+.checkout__item { display: flex; justify-content: space-between; font-size: 0.9rem; }
+.checkout__line { display: flex; justify-content: space-between; padding: 6px 0; color: var(--muted); }
+.checkout__line--save { color: #2e7d32; }
+.checkout__total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 6px; border-top: 1px solid var(--line, #eee); font-size: 1.1rem; }
+.checkout-done { display: grid; place-items: center; }
+.checkout-done__card { background: #fff; border: 1px solid var(--line, #ece6df); border-radius: 18px; padding: 40px; max-width: 460px; text-align: center; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.checkout-done__card h1 { font-family: 'Fraunces', serif; font-weight: 500; }
+
+@media (max-width: 760px) {
+  .checkout__grid { grid-template-columns: 1fr; }
+  .checkout__summary { position: static; }
+}

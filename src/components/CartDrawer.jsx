@@ -1,13 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
-import { useStore } from '../context/StoreContext.jsx'
-import { useAuth } from '../context/AuthContext.jsx'
 import SmartImage from './SmartImage.jsx'
 import { formatINR } from '../constants.js'
-import { IconClose, IconPlus, IconMinus, IconTrash, IconWhatsApp } from './icons.jsx'
-import api from '../api/client.js'
-
-const WA_FALLBACK = import.meta.env.VITE_WHATSAPP_NUMBER || '919999999999'
+import { IconClose, IconPlus, IconMinus, IconTrash } from './icons.jsx'
 
 export default function CartDrawer() {
   const {
@@ -24,14 +20,10 @@ export default function CartDrawer() {
     couponError,
     applyCoupon,
     removeCoupon,
-    clearCart,
   } = useCart()
-  const { settings } = useStore()
-  const { profile } = useAuth()
+  const navigate = useNavigate()
   const [code, setCode] = useState('')
   const [applying, setApplying] = useState(false)
-
-  const whatsapp = settings.whatsapp || WA_FALLBACK
 
   const handleApply = async () => {
     setApplying(true)
@@ -40,46 +32,11 @@ export default function CartDrawer() {
     setApplying(false)
   }
 
-  const checkout = async () => {
+  // Hand off to the full checkout page (address + Razorpay / WhatsApp).
+  const checkout = () => {
     if (!items.length) return
-
-    const payload = {
-      items: items.map((i) => ({
-        product: i.id,
-        name: i.name,
-        price: i.price,
-        qty: i.qty,
-      })),
-      total,
-      customer: profile
-        ? {
-            name: profile.fullName || 'WhatsApp Customer',
-            phone: profile.phone || '',
-            address: profile.address || '',
-          }
-        : { name: 'WhatsApp Customer' },
-      coupon: coupon?.code || '',
-      discount,
-    }
-    try {
-      await api.post('/orders', payload)
-    } catch {
-      // Don't block checkout if the API is unreachable.
-    }
-
-    const lines = items
-      .map((i) => `• ${i.name} × ${i.qty} — ${formatINR(i.price * i.qty)}`)
-      .join('%0A')
-    let text = `Hi ${settings.brandName || 'there'}! I'd like to order:%0A%0A${lines}%0A%0ASubtotal: ${formatINR(
-      subtotal,
-    )}`
-    if (discount > 0)
-      text += `%0ACoupon ${coupon.code}: -${formatINR(discount)}`
-    text += `%0A%0A*Total: ${formatINR(total)}*`
-
-    window.open(`https://wa.me/${whatsapp}?text=${text}`, '_blank')
-    clearCart()
     setIsOpen(false)
+    navigate('/checkout')
   }
 
   return (
@@ -167,10 +124,10 @@ export default function CartDrawer() {
               </div>
             </div>
 
-            <button className="btn btn--whatsapp" onClick={checkout}>
-              <IconWhatsApp /> Checkout on WhatsApp
+            <button className="btn btn--primary btn--block" onClick={checkout}>
+              Proceed to checkout
             </button>
-            <p className="drawer__note">Shipping &amp; details confirmed on WhatsApp.</p>
+            <p className="drawer__note">Pay online (UPI/cards) or order on WhatsApp.</p>
           </div>
         )}
       </aside>

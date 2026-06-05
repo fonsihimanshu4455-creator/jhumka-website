@@ -98,6 +98,7 @@ const orderFromDb = (r) => ({
   customer: r.customer || {},
   total: num(r.total),
   status: r.status,
+  payment: r.payment || {},
   userId: r.user_id || null,
   createdAt: r.created_at,
 })
@@ -115,6 +116,7 @@ const orderToDb = (b) => ({
   customer: b.customer || {},
   total: num(b.total),
   status: b.status || 'Pending',
+  payment: b.payment || {},
 })
 
 // Mirror of the old backend's coupon.evaluate(), run client-side.

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import SmartImage from '../components/SmartImage.jsx'
 import { formatINR } from '../constants.js'
@@ -17,8 +17,8 @@ export default function CartPage() {
     couponError,
     applyCoupon,
     removeCoupon,
-    setIsOpen,
   } = useCart()
+  const navigate = useNavigate()
   const [code, setCode] = useState('')
   const [applying, setApplying] = useState(false)
 
@@ -113,7 +113,7 @@ export default function CartPage() {
           )}
           <div className="cart-page__line muted">
             <span>Shipping</span>
-            <span>Confirmed on WhatsApp</span>
+            <span>Calculated at delivery</span>
           </div>
           <div className="cart-page__line cart-page__grand">
             <span>Total</span>
@@ -121,7 +121,7 @@ export default function CartPage() {
           </div>
           <button
             className="btn btn--primary btn--block"
-            onClick={() => setIsOpen(true)}
+            onClick={() => navigate('/checkout')}
           >
             Proceed to checkout
           </button>

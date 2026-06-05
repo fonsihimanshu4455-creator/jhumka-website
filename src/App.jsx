@@ -3,6 +3,7 @@ import Storefront from './layouts/Storefront.jsx'
 import Home from './pages/Home.jsx'
 import ProductDetail from './pages/ProductDetail.jsx'
 import CartPage from './pages/CartPage.jsx'
+import Checkout from './pages/Checkout.jsx'
 import Account from './pages/Account.jsx'
 import NotFound from './pages/NotFound.jsx'
 import AdminLayout from './admin/AdminLayout.jsx'
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="/account" element={<Account />} />
       </Route>
 
