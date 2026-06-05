@@ -980,7 +980,11 @@ button { font-family: inherit; cursor: pointer; }
 .account__form label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--muted); }
 .account__form input, .account__form textarea { padding: 11px 13px; border: 1px solid var(--line, #ddd); border-radius: 10px; font: inherit; }
 .account__msg { font-size: 0.85rem; color: var(--muted); }
-.account__switch { text-align: center; font-size: 0.9rem; color: var(--muted); }
+.account__switch { text-align: center; font-size: 0.9rem; color: var(--muted); margin-top: 12px; }
+.auth-tabs { display: flex; gap: 6px; background: #f3ece6; border-radius: 12px; padding: 4px; }
+.auth-tab { flex: 1; border: none; background: none; padding: 9px; border-radius: 9px; font: inherit; font-size: 0.88rem; color: var(--muted); cursor: pointer; }
+.auth-tab.is-active { background: #fff; color: var(--plum, #6b2d4f); font-weight: 500; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.admin-login__card form { display: flex; flex-direction: column; gap: 16px; }
 .linkish { background: none; border: none; color: var(--plum, #6b2d4f); font: inherit; cursor: pointer; text-decoration: underline; padding: 0; }
 
 .account__orders { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }

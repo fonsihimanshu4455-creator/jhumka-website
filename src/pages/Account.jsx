@@ -16,23 +16,45 @@ export default function Account() {
   )
 }
 
-// ---- Logged-out: login + sign-up ------------------------------------------
+// Turn a typed number into E.164 (defaults to India +91 for 10-digit numbers).
+function normalizePhone(raw) {
+  let p = (raw || '').replace(/[^\d+]/g, '')
+  if (!p) return ''
+  if (p.startsWith('+')) return p
+  if (p.length === 10) return '+91' + p
+  return '+' + p
+}
+
+// ---- Logged-out: login (email or OTP) + sign-up ---------------------------
 function AuthForms() {
-  const { login, signup } = useAuth()
-  const [mode, setMode] = useState('login') // 'login' | 'signup'
+  const { login, signup, sendOtp, verifyOtp } = useAuth()
+  const [mode, setMode] = useState('otp') // 'otp' | 'login' | 'signup'
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
     email: '',
     password: '',
   })
+  // OTP flow
+  const [otpPhone, setOtpPhone] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const [busy, setBusy] = useState(false)
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
+  const reset = (m) => {
+    setMode(m)
+    setError('')
+    setInfo('')
+    setOtpSent(false)
+    setOtpCode('')
+  }
 
-  const submit = async (e) => {
+  // Email login / signup
+  const submitEmail = async (e) => {
     e.preventDefault()
     setError('')
     setInfo('')
@@ -54,85 +76,187 @@ function AuthForms() {
     }
   }
 
+  // OTP: send code
+  const sendCode = async (e) => {
+    e.preventDefault()
+    setError('')
+    setBusy(true)
+    try {
+      const phone = normalizePhone(otpPhone)
+      if (phone.length < 10) throw new Error('Enter a valid mobile number.')
+      await sendOtp(phone)
+      setOtpPhone(phone)
+      setOtpSent(true)
+      setInfo(`We sent a code to ${phone}.`)
+    } catch (err) {
+      setError(err?.response?.data?.message || err.message || 'Could not send code.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // OTP: verify code
+  const verifyCode = async (e) => {
+    e.preventDefault()
+    setError('')
+    setBusy(true)
+    try {
+      await verifyOtp(otpPhone, otpCode.trim())
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Wrong or expired code.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="admin-login admin-login--page">
-      <form className="admin-login__card" onSubmit={submit}>
-        <h1>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
+      <div className="admin-login__card">
+        <h1>
+          {mode === 'signup' ? 'Create your account' : 'Welcome'}
+        </h1>
         <p className="admin-login__sub">
-          {mode === 'login'
-            ? 'Log in to track your orders'
-            : 'Sign up to checkout faster and see your orders'}
+          {mode === 'otp'
+            ? 'Log in with your mobile number'
+            : mode === 'login'
+              ? 'Log in with email'
+              : 'Sign up to checkout faster'}
         </p>
+
+        {/* Tabs */}
+        <div className="auth-tabs">
+          <button
+            type="button"
+            className={`auth-tab ${mode === 'otp' ? 'is-active' : ''}`}
+            onClick={() => reset('otp')}
+          >
+            Mobile OTP
+          </button>
+          <button
+            type="button"
+            className={`auth-tab ${mode !== 'otp' ? 'is-active' : ''}`}
+            onClick={() => reset('login')}
+          >
+            Email
+          </button>
+        </div>
 
         {error && <div className="admin-alert">{error}</div>}
         {info && <div className="admin-success">{info}</div>}
 
-        {mode === 'signup' && (
+        {/* ---- Mobile OTP ---- */}
+        {mode === 'otp' && (
           <>
-            <label>
-              Full name
-              <input
-                value={form.fullName}
-                onChange={(e) => set('fullName', e.target.value)}
-                required
-              />
-            </label>
-            <label>
-              Phone (WhatsApp)
-              <input
-                value={form.phone}
-                onChange={(e) => set('phone', e.target.value)}
-                placeholder="9198…"
-              />
-            </label>
+            {!otpSent ? (
+              <form onSubmit={sendCode}>
+                <label>
+                  Mobile number
+                  <input
+                    type="tel"
+                    value={otpPhone}
+                    onChange={(e) => setOtpPhone(e.target.value)}
+                    placeholder="98XXXXXXXX"
+                    required
+                  />
+                </label>
+                <button className="admin-btn" disabled={busy} type="submit">
+                  {busy ? 'Sending…' : 'Send OTP'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={verifyCode}>
+                <label>
+                  Enter the 6-digit code
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value)}
+                    placeholder="••••••"
+                    required
+                  />
+                </label>
+                <button className="admin-btn" disabled={busy} type="submit">
+                  {busy ? 'Verifying…' : 'Verify & log in'}
+                </button>
+                <p className="account__switch">
+                  <button
+                    type="button"
+                    className="linkish"
+                    onClick={() => {
+                      setOtpSent(false)
+                      setOtpCode('')
+                      setInfo('')
+                    }}
+                  >
+                    Change number / resend
+                  </button>
+                </p>
+              </form>
+            )}
           </>
         )}
 
-        <label>
-          Email
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => set('email', e.target.value)}
-            required
-            autoComplete="email"
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            value={form.password}
-            onChange={(e) => set('password', e.target.value)}
-            required
-            minLength={6}
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-          />
-        </label>
-
-        <button className="admin-btn" disabled={busy} type="submit">
-          {busy
-            ? 'Please wait…'
-            : mode === 'login'
-              ? 'Log in'
-              : 'Create account'}
-        </button>
-
-        <p className="account__switch">
-          {mode === 'login' ? "New here? " : 'Already have an account? '}
-          <button
-            type="button"
-            className="linkish"
-            onClick={() => {
-              setMode(mode === 'login' ? 'signup' : 'login')
-              setError('')
-              setInfo('')
-            }}
-          >
-            {mode === 'login' ? 'Create an account' : 'Log in'}
-          </button>
-        </p>
-      </form>
+        {/* ---- Email login / signup ---- */}
+        {mode !== 'otp' && (
+          <form onSubmit={submitEmail}>
+            {mode === 'signup' && (
+              <>
+                <label>
+                  Full name
+                  <input
+                    value={form.fullName}
+                    onChange={(e) => set('fullName', e.target.value)}
+                    required
+                  />
+                </label>
+                <label>
+                  Phone (WhatsApp)
+                  <input
+                    value={form.phone}
+                    onChange={(e) => set('phone', e.target.value)}
+                    placeholder="9198…"
+                  />
+                </label>
+              </>
+            )}
+            <label>
+              Email
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => set('email', e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                value={form.password}
+                onChange={(e) => set('password', e.target.value)}
+                required
+                minLength={6}
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              />
+            </label>
+            <button className="admin-btn" disabled={busy} type="submit">
+              {busy ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Create account'}
+            </button>
+            <p className="account__switch">
+              {mode === 'login' ? "New here? " : 'Already have an account? '}
+              <button
+                type="button"
+                className="linkish"
+                onClick={() => reset(mode === 'login' ? 'signup' : 'login')}
+              >
+                {mode === 'login' ? 'Create an account' : 'Log in'}
+              </button>
+            </p>
+          </form>
+        )}
+      </div>
     </div>
   )
 }

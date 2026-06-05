@@ -78,6 +78,28 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  // Send a one-time code to a phone number (E.164, e.g. +9198…).
+  const sendOtp = async (phone) => {
+    if (!supabase) throw authError('Store is not connected yet.')
+    const { error } = await supabase.auth.signInWithOtp({ phone })
+    if (error) throw authError(error.message)
+    return true
+  }
+
+  // Verify the 6-digit code and log the customer in.
+  const verifyOtp = async (phone, token) => {
+    if (!supabase) throw authError('Store is not connected yet.')
+    const { data, error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms',
+    })
+    if (error) throw authError(error.message)
+    setSession(data.session)
+    await loadProfile(data.session?.user?.id)
+    return data
+  }
+
   const logout = async () => {
     if (supabase) await supabase.auth.signOut()
     setSession(null)
@@ -94,6 +116,8 @@ export function AuthProvider({ children }) {
     isAdmin: profile?.role === 'admin',
     login,
     signup,
+    sendOtp,
+    verifyOtp,
     logout,
     refreshProfile,
   }
