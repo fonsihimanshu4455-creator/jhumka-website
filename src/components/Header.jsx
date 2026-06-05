@@ -1,12 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import { useStore } from '../context/StoreContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import { assetUrl } from '../api/client.js'
-import { IconBag } from './icons.jsx'
+import { IconBag, IconUser } from './icons.jsx'
 
 export default function Header() {
   const { count, setIsOpen } = useCart()
   const { settings, categories } = useStore()
+  const { isAuthed } = useAuth()
   const navigate = useNavigate()
 
   const goToCategory = (slug) => {
@@ -51,14 +53,24 @@ export default function Header() {
           ))}
         </nav>
 
-        <button
-          className="cart-btn"
-          aria-label="Open cart"
-          onClick={() => setIsOpen(true)}
-        >
-          <IconBag />
-          {count > 0 && <span className="cart-btn__badge">{count}</span>}
-        </button>
+        <div className="header__actions">
+          <Link
+            to="/account"
+            className="cart-btn"
+            aria-label={isAuthed ? 'My account' : 'Login'}
+            title={isAuthed ? 'My account' : 'Login'}
+          >
+            <IconUser />
+          </Link>
+          <button
+            className="cart-btn"
+            aria-label="Open cart"
+            onClick={() => setIsOpen(true)}
+          >
+            <IconBag />
+            {count > 0 && <span className="cart-btn__badge">{count}</span>}
+          </button>
+        </div>
       </div>
     </header>
   )

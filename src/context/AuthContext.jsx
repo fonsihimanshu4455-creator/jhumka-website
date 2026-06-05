@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js'
 
 const AuthContext = createContext(null)
@@ -11,22 +17,38 @@ function authError(message) {
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
-  // `ready` flips true once we've checked for an existing session, so guards
-  // don't bounce a logged-in admin to the login screen on a page refresh.
+  const [profile, setProfile] = useState(null)
+  // `ready` flips true once the initial session + profile check finishes, so
+  // route guards don't bounce a logged-in user on a page refresh.
   const [ready, setReady] = useState(!isSupabaseConfigured)
 
+  const loadProfile = useCallback(async (userId) => {
+    if (!supabase || !userId) {
+      setProfile(null)
+      return null
+    }
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle()
+    setProfile(data || null)
+    return data || null
+  }, [])
+
   useEffect(() => {
-    // Not configured: `ready` already starts true, nothing to load.
     if (!supabase) return
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session)
+      await loadProfile(data.session?.user?.id)
       setReady(true)
     })
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s)
+      loadProfile(s?.user?.id)
     })
     return () => sub.subscription.unsubscribe()
-  }, [])
+  }, [loadProfile])
 
   const login = async (email, password) => {
     if (!supabase) throw authError('Store is not connected yet.')
@@ -36,21 +58,47 @@ export function AuthProvider({ children }) {
     })
     if (error) throw authError(error.message)
     setSession(data.session)
+    await loadProfile(data.session?.user?.id)
+    return data
+  }
+
+  const signup = async ({ email, password, fullName, phone }) => {
+    if (!supabase) throw authError('Store is not connected yet.')
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName || '', phone: phone || '' } },
+    })
+    if (error) throw authError(error.message)
+    // If email confirmation is disabled, a session is returned immediately.
+    if (data.session) {
+      setSession(data.session)
+      await loadProfile(data.session.user.id)
+    }
     return data
   }
 
   const logout = async () => {
     if (supabase) await supabase.auth.signOut()
     setSession(null)
+    setProfile(null)
   }
 
-  return (
-    <AuthContext.Provider
-      value={{ isAuthed: !!session, ready, login, logout }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+  const refreshProfile = () => loadProfile(session?.user?.id)
+
+  const value = {
+    user: session?.user || null,
+    profile,
+    ready,
+    isAuthed: !!session,
+    isAdmin: profile?.role === 'admin',
+    login,
+    signup,
+    logout,
+    refreshProfile,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => {

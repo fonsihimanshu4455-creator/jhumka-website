@@ -29,6 +29,13 @@ export const IconClose = (p) => (
   </svg>
 )
 
+export const IconUser = (p) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" {...base} {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M5 20a7 7 0 0 1 14 0" />
+  </svg>
+)
+
 export const IconMenu = (p) => (
   <svg viewBox="0 0 24 24" width="22" height="22" {...base} {...p}>
     <path d="M4 7h16M4 12h16M4 17h16" />

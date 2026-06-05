@@ -18,6 +18,7 @@ export default function AdminLayout() {
     { to: '/admin/products', label: 'Products' },
     { to: '/admin/categories', label: 'Categories' },
     { to: '/admin/orders', label: 'Orders' },
+    { to: '/admin/customers', label: 'Customers' },
     { to: '/admin/coupons', label: 'Coupons' },
     { to: '/admin/settings', label: 'Settings' },
   ]

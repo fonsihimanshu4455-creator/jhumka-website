@@ -98,6 +98,16 @@ const orderFromDb = (r) => ({
   customer: r.customer || {},
   total: num(r.total),
   status: r.status,
+  userId: r.user_id || null,
+  createdAt: r.created_at,
+})
+
+const profileFromDb = (r) => ({
+  _id: r.id,
+  fullName: r.full_name || '',
+  phone: r.phone || '',
+  address: r.address || '',
+  role: r.role,
   createdAt: r.created_at,
 })
 const orderToDb = (b) => ({
@@ -191,12 +201,34 @@ async function get(path) {
       if (error) fail(error.message)
       return ok(data?.data || {})
     }
+    case 'profile': {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return ok(null)
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle()
+      if (error) fail(error.message)
+      return ok(data ? profileFromDb(data) : null)
+    }
+    case 'customers': {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'customer')
+        .order('created_at', { ascending: false })
+      if (error) fail(error.message)
+      return ok((data || []).map(profileFromDb))
+    }
     default:
       fail(`Unknown GET ${path}`)
   }
 }
 
-async function post(path, body, _config) {
+async function post(path, body) {
   const s = seg(path)
 
   if (s[0] === 'upload') return uploadImage(body)
@@ -252,9 +284,12 @@ async function post(path, body, _config) {
       return ok(couponFromDb(data))
     }
     case 'orders': {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       const { data, error } = await supabase
         .from('orders')
-        .insert(orderToDb(body))
+        .insert({ ...orderToDb(body), user_id: user?.id || null })
         .select()
         .single()
       if (error) fail(error.message)
@@ -309,6 +344,24 @@ async function put(path, body) {
         .upsert({ key: 'store', data: clean }, { onConflict: 'key' })
       if (error) fail(error.message)
       return ok(clean)
+    }
+    case 'profile': {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) fail('You are not logged in.')
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: body.fullName || '',
+          phone: body.phone || '',
+          address: body.address || '',
+        })
+        .eq('id', user.id)
+        .select()
+        .single()
+      if (error) fail(error.message)
+      return ok(profileFromDb(data))
     }
     default:
       fail(`Unknown PUT ${path}`)

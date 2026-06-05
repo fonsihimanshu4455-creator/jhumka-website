@@ -38,6 +38,28 @@ demo products/categories so the store looks complete immediately. ✅
 
 > This email + password is what you'll use at `/admin/login`.
 
+## 3b. Turn on customer accounts + make yourself admin
+
+The store supports **customer login/signup** (customers can track their orders,
+and you see every customer + order in the admin panel). One more SQL file sets
+this up and marks your account as the admin.
+
+1. Open **`supabase/customer-auth.sql`** from this repo.
+2. On the **last line**, change the email to the admin email you created in
+   step 3:
+   ```sql
+   ... from auth.users where email = 'your-admin-email@example.com'
+   ```
+3. Copy the whole file → Supabase **SQL Editor** → **New query** → paste → **Run**.
+
+Then make customer sign-up instant (no email click required):
+
+4. **Authentication** → **Providers** (or **Sign In / Providers**) → **Email** →
+   turn **OFF** "Confirm email" → Save.
+
+> If you leave "Confirm email" ON, customers must click a link in their email
+> before they can log in — signup still works, just with that extra step.
+
 ## 4. Copy your API keys
 
 1. Left sidebar → **Project Settings** (gear) → **API**.
@@ -67,9 +89,11 @@ The anon key is **safe to put in the website** — the database security rules
 
 - Open your website → you should see the products.
 - Go to **`/admin/login`** → sign in with the email/password from step 3.
-- Add/edit products, categories, coupons, upload images, see orders.
+- Add/edit products, categories, coupons, upload images, see orders + customers.
+- Click the **person icon** in the header → customers can **sign up / log in**
+  and see their own orders under **My account**.
 - On the storefront, add to cart → **Checkout on WhatsApp** sends the order to
-  your number.
+  your number (and saves it, linked to the customer if they're logged in).
 
 ---
 

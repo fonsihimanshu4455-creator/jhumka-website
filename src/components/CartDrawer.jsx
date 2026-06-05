@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useCart } from '../context/CartContext.jsx'
 import { useStore } from '../context/StoreContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import SmartImage from './SmartImage.jsx'
 import { formatINR } from '../constants.js'
 import { IconClose, IconPlus, IconMinus, IconTrash, IconWhatsApp } from './icons.jsx'
@@ -26,6 +27,7 @@ export default function CartDrawer() {
     clearCart,
   } = useCart()
   const { settings } = useStore()
+  const { profile } = useAuth()
   const [code, setCode] = useState('')
   const [applying, setApplying] = useState(false)
 
@@ -49,7 +51,13 @@ export default function CartDrawer() {
         qty: i.qty,
       })),
       total,
-      customer: { name: 'WhatsApp Customer' },
+      customer: profile
+        ? {
+            name: profile.fullName || 'WhatsApp Customer',
+            phone: profile.phone || '',
+            address: profile.address || '',
+          }
+        : { name: 'WhatsApp Customer' },
       coupon: coupon?.code || '',
       discount,
     }
